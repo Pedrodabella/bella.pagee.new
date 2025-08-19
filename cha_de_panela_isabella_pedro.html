@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chá de Panela - Isabella & Pedro</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #fffaf5; margin: 0; padding: 0; text-align: center; color: #444; }
+    header { 
+      background: url('FOTO_DO_CASAL.jpg') center/cover no-repeat; 
+      padding: 60px 20px; 
+      color: white; 
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+    }
+    h1 { font-size: 2.5em; margin: 0; }
+    p.date { font-size: 1.2em; margin: 10px 0; }
+    .countdown { font-size: 1.3em; margin-top: 15px; color: #ffe6eb; }
+    
+    section { 
+      margin: 30px auto; 
+      max-width: 750px; 
+      background: white; 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    }
+    h2 { color: #d6336c; margin-bottom: 15px; }
+    ul { list-style: none; padding: 0; }
+    ul li { 
+      background: #fef2f4; 
+      margin: 10px 0; 
+      padding: 15px; 
+      border-radius: 8px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      font-size: 1.05em;
+    }
+    button { 
+      background: #d6336c; 
+      color: white; 
+      border: none; 
+      padding: 8px 14px; 
+      border-radius: 5px; 
+      cursor: pointer; 
+    }
+    button:hover { background: #a61e4d; }
+    .reserved { color: red; font-weight: bold; }
+    
+    .whatsapp-btn { 
+      display: inline-block; 
+      margin-top: 15px; 
+      padding: 14px 24px; 
+      background: #25d366; 
+      color: white; 
+      border-radius: 8px; 
+      text-decoration: none; 
+      font-weight: bold; 
+      font-size: 1.1em;
+    }
+    .whatsapp-btn:hover { background: #1ebe5d; }
+    
+    iframe { border: none; border-radius: 10px; width: 100%; height: 300px; margin-top: 15px; }
+    
+    footer { background: #ffb6c1; padding: 18px; color: white; margin-top: 30px; font-size: 0.95em; }
+  </style>
+</head>
+<body>
+  <!-- Cabeçalho com foto -->
+  <header>
+    <h1>Chá de Panela da Isabella & Pedro</h1>
+    <p class="date">Dia 15 de Setembro de 2025 • 16h • Salão Jardim Encantado</p>
+    <div class="countdown" id="countdown"></div>
+  </header>
+
+  <!-- Lista de presentes -->
+  <section>
+    <h2>Lista de Presentes 🎁</h2>
+    <ul id="listaPresentes">
+      <li>Carregando presentes...</li>
+    </ul>
+  </section>
+
+  <!-- Confirmação de presença -->
+  <section>
+    <h2>Confirme sua Presença ✅</h2>
+    <p>Clique no botão abaixo para confirmar pelo WhatsApp:</p>
+    <a class="whatsapp-btn" href="https://wa.me/5522999013739?text=Olá! Quero confirmar minha presença no chá de panela 😍" target="_blank">
+      Confirmar no WhatsApp
+    </a>
+  </section>
+
+  <!-- Local -->
+  <section>
+    <h2>Local 📍</h2>
+    <p>Salão Jardim Encantado - Rua das Flores, 123 - São Paulo/SP</p>
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12..."
+            allowfullscreen></iframe>
+  </section>
+
+  <footer>
+    <p>Com carinho, Isabella & Pedro 💕</p>
+  </footer>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/https://docs.google.com/spreadsheets/d/1-1g8i0EBRCCXrnB9395vHvNMYIGEzO6dqWlRvFn23N0/edit?usp=sharing/exec"; // cole aqui a URL do Apps Script
+
+    // Contagem regressiva
+    const eventDate = new Date("Sep 15, 2025 16:00:00").getTime();
+    const countdown = document.getElementById("countdown");
+    setInterval(() => {
+      const now = new Date().getTime();
+      const distance = eventDate - now;
+      if (distance < 0) {
+        countdown.innerHTML = "🎉 O chá de panela já começou!";
+        return;
+      }
+      const days = Math.floor(distance / (1000*60*60*24));
+      const hours = Math.floor((distance % (1000*60*60*24))/(1000*60*60));
+      const minutes = Math.floor((distance % (1000*60*60))/(1000*60));
+      const seconds = Math.floor((distance % (1000*60))/1000);
+      countdown.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }, 1000);
+
+    // Carregar presentes
+    function carregarPresentes() {
+      fetch(API_URL)
+        .then(r => r.json())
+        .then(lista => {
+          const ul = document.getElementById("listaPresentes");
+          ul.innerHTML = "";
+
+          lista.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = item.presente + " ";
+
+            if (item.status === "Disponível") {
+              const btn = document.createElement("button");
+              btn.textContent = "Reservar";
+              btn.onclick = () => reservar(item.presente);
+              li.appendChild(btn);
+            } else {
+              li.innerHTML += `<span class="reserved">[Reservado por ${item.convidado || "alguém"}]</span>`;
+            }
+            ul.appendChild(li);
+          });
+        });
+    }
+
+    // Reservar presente
+    function reservar(item) {
+      let nome = prompt("Digite seu nome para reservar:");
+      if (!nome) return;
+
+      fetch(API_URL + "?presente=" + encodeURIComponent(item) + "&nome=" + encodeURIComponent(nome))
+        .then(r => r.text())
+        .then(msg => {
+          alert(msg);
+          carregarPresentes(); // Atualiza lista
+        });
+    }
+
+    carregarPresentes();
+  </script>
+</body>
+</html>
